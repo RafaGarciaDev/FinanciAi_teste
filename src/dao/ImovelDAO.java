@@ -19,7 +19,7 @@ public class ImovelDAO {
     private void criarTabelaImoveis() {
         String sql = "CREATE TABLE IF NOT EXISTS imoveis (" +
                 "id INT PRIMARY KEY, " +
-                "valor_mercado DOUBLE NOT NULL, " +
+                "valor DOUBLE NOT NULL, " +
                 "tipo_imovel VARCHAR(50) NOT NULL)";
         try (Statement stmt = conexao.createStatement()) {
             stmt.executeUpdate(sql);
@@ -52,10 +52,10 @@ public class ImovelDAO {
             return;
         }
 
-        String sql = "INSERT INTO imoveis (id, valor_mercado, tipo_imovel) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO imoveis (id, valor, tipo_imovel) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setInt(1, imovel.getId());
-            stmt.setDouble(2, imovel.getValorMercado());
+            stmt.setDouble(2, imovel.getvalor()); // Usando getValor() corrigido
             stmt.setString(3, imovel.getTipoImovel().toString());
             stmt.executeUpdate();
             System.out.println("Imóvel adicionado com sucesso!");
@@ -73,8 +73,8 @@ public class ImovelDAO {
             while (rs.next()) {
                 Imovel imovel = new Imovel(
                         rs.getInt("id"),
-                        rs.getDouble("valor_mercado"),
-                        TipoImovel.valueOf(rs.getString("tipo_imovel"))
+                        rs.getDouble("valor"),
+                        TipoImovel.valueOf(rs.getString("tipo_imovel")) // Corrigido para "tipo_imovel"
                 );
                 imoveis.add(imovel);
             }
@@ -82,6 +82,25 @@ public class ImovelDAO {
             throw new RuntimeException("Erro ao listar imóveis: " + e.getMessage(), e);
         }
         return imoveis;
+    }
+
+    public Imovel buscarImovelPorId(int id) {
+        String sql = "SELECT * FROM imoveis WHERE id = ?";
+        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Imovel(
+                            rs.getInt("id"),
+                            rs.getDouble("valor"),
+                            TipoImovel.valueOf(rs.getString("tipo_imovel"))
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar imóvel por ID: " + e.getMessage(), e);
+        }
+        return null; // Retorna null se o imóvel não for encontrado
     }
 
     // Método para fechar a conexão

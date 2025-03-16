@@ -83,6 +83,25 @@ public class ClienteDAO {
         return clientes;
     }
 
+    public Cliente buscarClientePorId(int id) {
+        String sql = "SELECT * FROM clientes WHERE id = ?";
+        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Cliente(
+                            rs.getInt("id"),
+                            rs.getString("nome"),
+                            rs.getDouble("renda_mensal")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao buscar cliente por ID: " + e.getMessage(), e);
+        }
+        return null; // Retorna null se o cliente não for encontrado
+    }
+
     // Método para fechar a conexão
     public void fecharConexao() {
         try {

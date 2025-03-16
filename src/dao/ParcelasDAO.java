@@ -49,10 +49,18 @@ public class ParcelasDAO {
         return false;
     }
 
+    // Método para formatar valores com duas casas decimais
     private double formatarValor(double valor) {
         DecimalFormat df = new DecimalFormat("#.##"); // Formata com duas casas decimais
         df.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US)); // Usa ponto como separador decimal
         return Double.parseDouble(df.format(valor));
+    }
+
+    // Método para exibir a tartaruga e o progresso
+    private void exibirTartaruga(int parcelaAtual, int totalParcelas) {
+        String tartaruga = "🐢";
+        String progresso = parcelaAtual + " de " + totalParcelas;
+        System.out.println(tartaruga + " " + progresso);
     }
 
     // Método para adicionar uma nova parcela
@@ -74,12 +82,15 @@ public class ParcelasDAO {
             stmt.setDouble(4, valorParcelaFormatado); // Valor formatado
             stmt.setDouble(5, valorAmortizacaoFormatado); // Valor formatado
             stmt.executeUpdate();
-            System.out.println("Parcela adicionada com sucesso!");
+
+            // Exibe a tartaruga e o progresso
+            exibirTartaruga(parcela.getNumeroParcela(), parcela.getNumeroParcela()); // Usa o número da parcela como total de parcelas
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao adicionar parcela: " + e.getMessage(), e);
         }
     }
 
+    // Método para remover parcelas intermediárias
     private void removerParcelasIntermediarias(int financiamentoId) {
         // Consulta para selecionar as 5 primeiras e as 5 últimas parcelas
         String sql = "DELETE FROM parcelas WHERE financiamento_id = ? AND id NOT IN (" +

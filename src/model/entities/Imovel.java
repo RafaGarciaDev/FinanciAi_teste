@@ -4,15 +4,15 @@ import model.enums.TipoImovel;
 
 public class Imovel {
     private int id;
-    private double valorMercado;
+    private double valor;
     private TipoImovel tipoImovel;
 
     // Construtores
     public Imovel() {}
 
-    public Imovel(int id, double valorMercado, TipoImovel tipoImovel) {
+    public Imovel(int id, double valor, TipoImovel tipoImovel) {
         this.id = id;
-        this.valorMercado = valorMercado;
+        this.valor = valor;
         this.tipoImovel = tipoImovel;
     }
 
@@ -25,12 +25,12 @@ public class Imovel {
         this.id = id;
     }
 
-    public double getValorMercado() {
-        return valorMercado;
+    public double getvalor() {
+        return valor;
     }
 
-    public void setValorMercado(double valorMercado) {
-        this.valorMercado = valorMercado;
+    public void setvalor(double valor) {
+        this.valor = valor;
     }
 
     public TipoImovel getTipoImovel() {
@@ -45,8 +45,10 @@ public class Imovel {
     public String toString() {
         return "Imovel{" +
                 "id=" + id +
-                ", valorMercado=" + valorMercado +
+                ", valor=" + valor +
                 ", tipoImovel=" + tipoImovel +
                 '}';
     }
+
+
 }
