@@ -27,15 +27,15 @@ public class Program {
 
         // Interação com o usuário
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Deseja começar uma nova simulação do zero (1)");
+        System.out.print("Deseja começar uma nova simulação do zero (1) ou consultar uma simulação existente (2)? ");
         int opcao = scanner.nextInt();
 
         if (opcao == 1) {
             // Nova simulação do zero
             novaSimulacao(scanner, clienteDAO, imovelDAO, financiamentoController);
-        //} else if (opcao == 2) {
-            // Usar dados salvos no banco
-           // usarDadosSalvos(scanner, clienteDAO, imovelDAO, financiamentoController);
+        } else if (opcao == 2) {
+            // Consultar simulação existente
+            consultarSimulacaoExistente(scanner, financiamentoController);
         } else {
             System.out.println("Opção inválida. Encerrando o programa.");
         }
@@ -136,9 +136,12 @@ public class Program {
         financiamentoController.listarParcelas(1);
     }
 
-    // Método para usar dados salvos no banco
-    private static void usarDadosSalvos(Scanner scanner, ClienteDAO clienteDAO, ImovelDAO imovelDAO, FinanciamentoController financiamentoController) throws SQLException {
-        System.out.print("Digite o ID do financiamento que deseja usar: ");
+    // Método para consultar simulação existente
+    private static void consultarSimulacaoExistente(Scanner scanner, FinanciamentoController financiamentoController) throws SQLException {
+        System.out.println("Financiamentos existentes:");
+        financiamentoController.listarFinanciamentos();
+
+        System.out.print("Digite o ID do financiamento que deseja consultar: ");
         int financiamentoId = scanner.nextInt();
 
         // Listar parcelas do financiamento selecionado
