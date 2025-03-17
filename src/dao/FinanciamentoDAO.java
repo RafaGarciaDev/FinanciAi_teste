@@ -2,7 +2,6 @@ package dao;
 
 import model.entities.Financiamento;
 import model.enums.TipoAmortizacao;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

@@ -84,7 +84,10 @@ public class ParcelasDAO {
             stmt.executeUpdate();
 
             // Exibe a tartaruga e o progresso
-            exibirTartaruga(parcela.getNumeroParcela(), parcela.getNumeroParcela()); // Usa o número da parcela como total de parcelas
+            exibirTartaruga(parcela.getNumeroParcela(), parcela.getNumeroParcela());
+
+
+            // Usa o número da parcela como total de parcelas
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao adicionar parcela: " + e.getMessage(), e);
         }
