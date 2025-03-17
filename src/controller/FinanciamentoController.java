@@ -1,9 +1,6 @@
 package controller;
 
-import dao.ClienteDAO;
-import dao.ImovelDAO;
-import dao.FinanciamentoDAO;
-import dao.ParcelasDAO;
+import dao.*;
 import gerador_pdf_do_financiamento.GeradorPDF;
 import model.entities.Cliente;
 import model.entities.Financiamento;
@@ -13,6 +10,11 @@ import model.enums.TipoAmortizacao;
 import model.services.Amortizacao;
 import model.services.Price;
 import model.services.SAC;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,21 +22,44 @@ public class FinanciamentoController {
 
     private FinanciamentoDAO financiamentoDAO;
     private ParcelasDAO parcelasDAO;
-    private ClienteDAO clienteDAO; // Declaração do ClienteDAO
-    private ImovelDAO imovelDAO;   // Declaração do ImovelDAO
+    private ClienteDAO clienteDAO;
+    private ImovelDAO imovelDAO;
 
     public FinanciamentoController() {
         this.financiamentoDAO = new FinanciamentoDAO();
         this.parcelasDAO = new ParcelasDAO();
-        this.clienteDAO = new ClienteDAO(); // Inicialização do ClienteDAO
-        this.imovelDAO = new ImovelDAO();   // Inicialização do ImovelDAO
+        this.clienteDAO = new ClienteDAO();
+        this.imovelDAO = new ImovelDAO();
     }
 
+    // Método para gerar um novo ID de financiamento
+    public int gerarNovoIdFinanciamento() throws SQLException {
+        String sql = "SELECT MAX(id) AS max_id FROM financiamentos"; // Consulta o maior ID existente
+        int novoId = 1; // Valor padrão caso não haja financiamentos cadastrados
+
+        try (Connection conn = Conexao.conectar(); // Obtém a conexão com o banco de dados
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                // Se houver financiamentos cadastrados, incrementa o maior ID em 1
+                novoId = rs.getInt("max_id") + 1;
+            }
+        }
+
+        return novoId;
+    }
+
+    // Método para simular um financiamento
     public void simularFinanciamento(int id, int clienteId, int imovelId, double valorTotalImovel, double taxaJuros, double valorEntrada, int prazo, TipoAmortizacao tipoAmortizacao) {
+        Connection conn = null;
         try {
+            conn = Conexao.conectar();
+            conn.setAutoCommit(false); // Inicia a transação
+
             // Recuperar informações do cliente e do imóvel
-            Cliente cliente = clienteDAO.buscarClientePorId(clienteId); // Método para buscar cliente por ID
-            Imovel imovel = imovelDAO.buscarImovelPorId(imovelId); // Método para buscar imóvel por ID
+            Cliente cliente = clienteDAO.buscarClientePorId(clienteId);
+            Imovel imovel = imovelDAO.buscarImovelPorId(imovelId);
 
             // Verifica se o cliente e o imóvel foram encontrados
             if (cliente == null) {
@@ -68,28 +93,45 @@ public class FinanciamentoController {
             List<Parcelas> parcelas = amortizacao.calcularParcelas(financiamento);
 
             // Salvar apenas as 5 primeiras e as 5 últimas parcelas
-            parcelasDAO.adicionarParcelasLimitadas(parcelas); // Passa o total de parcelas
+            parcelasDAO.adicionarParcelasLimitadas(parcelas);
+
+            // Commit da transação
+            conn.commit();
 
             // Gerar o PDF com todas as parcelas e informações do cliente/imóvel
             GeradorPDF.gerarPDF(
-                    financiamento.getId(),   // ID do financiamento
-                    cliente.getNome(),       // Nome do cliente
-                    valorTotalImovel,        // Valor total do imóvel
-                    valorEntrada,            // Valor de entrada
-                    imovel.getTipoImovel(),  // Tipo de imóvel (CASA ou APARTAMENTO)
-                    valorFinanciado,         // Valor financiado (valorTotalImovel - valorEntrada)
-                    totalPagar,              // Total a pagar no sistema Price
-                    totalPagar - valorFinanciado, // Juros totais no sistema Price
-                    totalPagar,              // Total a pagar no sistema SAC
-                    totalPagar - valorFinanciado, // Juros totais no sistema SAC
-                    parcelas                 // Lista de parcelas
+                    financiamento.getId(),
+                    cliente.getNome(),
+                    valorTotalImovel,
+                    valorEntrada,
+                    imovel.getTipoImovel(),
+                    valorFinanciado,
+                    totalPagar,
+                    totalPagar - valorFinanciado,
+                    totalPagar,
+                    totalPagar - valorFinanciado,
+                    parcelas
             );
 
-            //System.out.println("PDF gerado com sucesso: SimulacaoFinanciamento_" + financiamento.getId() + ".pdf");
-
         } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback(); // Rollback em caso de erro
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
             System.err.println("Erro ao simular financiamento: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true); // Restaura o modo de autocommit
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -137,8 +179,8 @@ public class FinanciamentoController {
         try {
             financiamentoDAO.fecharConexao();
             parcelasDAO.fecharConexao();
-            clienteDAO.fecharConexao(); // Fechar conexão do ClienteDAO
-            imovelDAO.fecharConexao();  // Fechar conexão do ImovelDAO
+            clienteDAO.fecharConexao();
+            imovelDAO.fecharConexao();
         } catch (Exception e) {
             System.err.println("Erro ao fechar conexões: " + e.getMessage());
             e.printStackTrace();

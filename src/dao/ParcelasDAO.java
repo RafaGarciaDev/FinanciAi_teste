@@ -34,10 +34,11 @@ public class ParcelasDAO {
     }
 
     // Método para verificar se uma parcela já existe
-    private boolean parcelaExiste(int id) {
-        String sql = "SELECT COUNT(*) FROM parcelas WHERE id = ?";
+    private boolean parcelaExiste(int financiamentoId, int numeroParcela) {
+        String sql = "SELECT COUNT(*) FROM parcelas WHERE financiamento_id = ? AND numero_parcela = ?";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
+            stmt.setInt(1, financiamentoId);
+            stmt.setInt(2, numeroParcela);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
@@ -65,8 +66,8 @@ public class ParcelasDAO {
 
     // Método para adicionar uma nova parcela
     public void adicionarParcela(Parcelas parcela) {
-        if (parcelaExiste(parcela.getId())) {
-            System.out.println("Parcela com ID " + parcela.getId() + " já existe no banco de dados.");
+        if (parcelaExiste(parcela.getFinanciamentoId(), parcela.getNumeroParcela())) {
+            System.out.println("Parcela " + parcela.getNumeroParcela() + " do financiamento " + parcela.getFinanciamentoId() + " já existe no banco de dados.");
             return;
         }
 
@@ -74,9 +75,12 @@ public class ParcelasDAO {
         double valorParcelaFormatado = formatarValor(parcela.getValorParcela());
         double valorAmortizacaoFormatado = formatarValor(parcela.getValorAmortizacao());
 
+        // Gera um ID único para a parcela
+        int idParcela = gerarIdUnicoParcela(parcela.getFinanciamentoId(), parcela.getNumeroParcela());
+
         String sql = "INSERT INTO parcelas (id, financiamento_id, numero_parcela, valor_parcela, valor_amortizacao) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, parcela.getId());
+            stmt.setInt(1, idParcela);
             stmt.setInt(2, parcela.getFinanciamentoId());
             stmt.setInt(3, parcela.getNumeroParcela());
             stmt.setDouble(4, valorParcelaFormatado); // Valor formatado
@@ -85,12 +89,15 @@ public class ParcelasDAO {
 
             // Exibe a tartaruga e o progresso
             exibirTartaruga(parcela.getNumeroParcela(), parcela.getNumeroParcela());
-
-
-            // Usa o número da parcela como total de parcelas
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao adicionar parcela: " + e.getMessage(), e);
         }
+    }
+
+    // Método para gerar um ID único para a parcela
+    private int gerarIdUnicoParcela(int financiamentoId, int numeroParcela) {
+        // Combina o ID do financiamento e o número da parcela para gerar um ID único
+        return financiamentoId * 10 + numeroParcela;
     }
 
     // Método para remover parcelas intermediárias

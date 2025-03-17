@@ -25,20 +25,33 @@ public class Program {
         // Listando clientes e imóveis disponíveis
         listarClientesEImoveis(clienteDAO, imovelDAO);
 
-        // Interação com o usuário
+        // Loop principal do programa
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Deseja começar uma nova simulação do zero (1) ou consultar uma simulação existente (2)? ");
-        int opcao = scanner.nextInt();
+        int opcao;
+        do {
+            System.out.println("\nEscolha uma opção:");
+            System.out.println("1 - Nova simulação do zero");
+            System.out.println("2 - Consultar simulação existente");
+            System.out.println("3 - Sair");
+            System.out.print("Opção: ");
+            opcao = scanner.nextInt();
 
-        if (opcao == 1) {
-            // Nova simulação do zero
-            novaSimulacao(scanner, clienteDAO, imovelDAO, financiamentoController);
-        } else if (opcao == 2) {
-            // Consultar simulação existente
-            consultarSimulacaoExistente(scanner, financiamentoController);
-        } else {
-            System.out.println("Opção inválida. Encerrando o programa.");
-        }
+            switch (opcao) {
+                case 1:
+                    // Nova simulação do zero
+                    novaSimulacao(scanner, clienteDAO, imovelDAO, financiamentoController);
+                    break;
+                case 2:
+                    // Consultar simulação existente
+                    consultarSimulacaoExistente(scanner, financiamentoController);
+                    break;
+                case 3:
+                    System.out.println("Encerrando o programa...");
+                    break;
+                default:
+                    System.out.println("Opção inválida. Tente novamente.");
+            }
+        } while (opcao != 3);
 
         // Fechando conexões
         clienteDAO.fecharConexao();
@@ -128,12 +141,15 @@ public class Program {
             tipoAmortizacao = TipoAmortizacao.PRICE;
         }
 
+        // Gerar um ID único para o financiamento
+        int financiamentoId = financiamentoController.gerarNovoIdFinanciamento();
+
         // Simulando o financiamento
-        financiamentoController.simularFinanciamento(1, clienteId, imovelId, valorFinanciado, taxaJuros, valorEntrada, prazo, tipoAmortizacao);
+        financiamentoController.simularFinanciamento(financiamentoId, clienteId, imovelId, valorFinanciado, taxaJuros, valorEntrada, prazo, tipoAmortizacao);
 
         // Listando financiamentos e parcelas
         financiamentoController.listarFinanciamentos();
-        financiamentoController.listarParcelas(1);
+        financiamentoController.listarParcelas(financiamentoId);
     }
 
     // Método para consultar simulação existente

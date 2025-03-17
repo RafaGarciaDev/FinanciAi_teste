@@ -2,6 +2,7 @@ package dao;
 
 import model.entities.Financiamento;
 import model.enums.TipoAmortizacao;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 public class FinanciamentoDAO {
     private Connection conexao;
 
+    // Construtor
     public FinanciamentoDAO() {
         conexao = Conexao.conectar(); // Conecta ao banco de dados
         criarTabelaFinanciamentos(); // Verifica e cria a tabela se não existir
@@ -53,6 +55,7 @@ public class FinanciamentoDAO {
 
     // Método para adicionar um financiamento
     public void adicionarFinanciamento(Financiamento financiamento) {
+        // Verifica se o financiamento já existe no banco de dados
         if (financiamentoExiste(financiamento.getId())) {
             System.out.println("Financiamento com ID " + financiamento.getId() + " já existe no banco de dados.");
             return;
@@ -69,7 +72,7 @@ public class FinanciamentoDAO {
             stmt.setInt(7, financiamento.getPrazo());
             stmt.setString(8, financiamento.getTipoAmortizacao().toString());
             stmt.setDouble(9, financiamento.getTotalPagar());
-            stmt.setDate(10, Date.valueOf(financiamento.getDataSimulacao()));
+            stmt.setDate(10, java.sql.Date.valueOf(financiamento.getDataSimulacao()));
             stmt.executeUpdate();
             System.out.println("Financiamento adicionado com sucesso!");
         } catch (SQLException e) {
@@ -107,9 +110,9 @@ public class FinanciamentoDAO {
     // Método para fechar a conexão
     public void fecharConexao() {
         try {
-            if (conexao != null) {
+            if (conexao != null && !conexao.isClosed()) {
                 conexao.close();
-                //System.out.println("Conexão com o banco de dados encerrada.");
+                System.out.println("Conexão com o banco de dados encerrada.");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao fechar a conexão: " + e.getMessage(), e);
