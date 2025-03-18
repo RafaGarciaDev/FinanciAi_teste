@@ -80,8 +80,13 @@ public class Program {
 
     // Método para adicionar 5 imóveis ao banco de dados
     private static void adicionarImoveis(ImovelDAO imovelDAO) throws SQLException {
+<<<<<<< Updated upstream
         Imovel imovel1 = new Imovel(1, 200000.00, TipoImovel.CASA);
         Imovel imovel2 = new Imovel(2, 300000.00, TipoImovel.APARTAMENTO);
+=======
+        Imovel imovel1 = new Imovel(1, 300000.00, TipoImovel.CASA);
+        Imovel imovel2 = new Imovel(2, 200000.00, TipoImovel.APARTAMENTO);
+>>>>>>> Stashed changes
         Imovel imovel3 = new Imovel(3, 500000.00, TipoImovel.CASA);
         Imovel imovel4 = new Imovel(4, 400000.00, TipoImovel.APARTAMENTO);
         Imovel imovel5 = new Imovel(5, 600000.00, TipoImovel.CASA);
@@ -125,7 +130,9 @@ public class Program {
         System.out.print("Digite o valor de entrada: ");
         double valorEntrada = scanner.nextDouble();
         System.out.print("Digite o prazo (em meses): ");
+
         int prazo = scanner.nextInt();
+<<<<<<< Updated upstream
 
         // Escolha do tipo de amortização usando números
         System.out.print("Digite o tipo de amortização (1 para PRICE, 2 para SAC): ");
@@ -143,6 +150,13 @@ public class Program {
 
         // Gerar um ID único para o financiamento
         int financiamentoId = financiamentoController.gerarNovoIdFinanciamento();
+=======
+        System.out.print("Digite o tipo de amortização (1 PRICE ou 2 SAC): ");
+
+
+        String tipoAmortizacaoStr = scanner.next();
+        TipoAmortizacao tipoAmortizacao = TipoAmortizacao.valueOf(tipoAmortizacaoStr.toUpperCase());
+>>>>>>> Stashed changes
 
         // Simulando o financiamento
         financiamentoController.simularFinanciamento(financiamentoId, clienteId, imovelId, valorFinanciado, taxaJuros, valorEntrada, prazo, tipoAmortizacao);
