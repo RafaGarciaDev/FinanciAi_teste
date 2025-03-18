@@ -16,29 +16,11 @@ public class FinanciamentoDAO {
         criarTabelaFinanciamentos(); // Verifica e cria a tabela se não existir
     }
 
-    // Método para verificar se a tabela financiamentos já existe
-    private boolean tabelaExiste() {
-        String sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'financiamentos'";
-        try (Statement stmt = conexao.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao verificar se a tabela 'financiamentos' existe: " + e.getMessage(), e);
-        }
-        return false;
-    }
-
     // Método para criar a tabela financiamentos se não existir
     private void criarTabelaFinanciamentos() {
-        if (tabelaExiste()) {
-            System.out.println("Tabela 'financiamentos' já existe.");
-            return;
-        }
-
-        String criaTabela = "CREATE TABLE financiamentos (" +
-                "id INT PRIMARY KEY AUTO_INCREMENT, " +
+        String verificaTabela = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'financiamentos'";
+        String criaTabela = "CREATE TABLE IF NOT EXISTS financiamentos (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT, " + // Adicionado AUTO_INCREMENT para o ID
                 "cliente_id INT NOT NULL, " +
                 "imovel_id INT NOT NULL, " +
                 "valor_financiado DOUBLE NOT NULL, " +
@@ -49,11 +31,18 @@ public class FinanciamentoDAO {
                 "total_pagar DOUBLE NOT NULL, " +
                 "data_simulacao DATE NOT NULL)";
 
-        try (Statement stmt = conexao.createStatement()) {
-            stmt.executeUpdate(criaTabela);
-            System.out.println("Tabela 'financiamentos' criada com sucesso!");
+        try (Statement stmt = conexao.createStatement();
+             ResultSet rs = stmt.executeQuery(verificaTabela)) {
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Tabela 'financiamentos' já existe.");
+            } else {
+                stmt.executeUpdate(criaTabela);
+               // System.out.println("Criando tabela 'financiamentos'...");
+                System.out.println("Tabela 'financiamentos' criada com sucesso!");
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao criar tabela 'financiamentos': " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao verificar/criar tabela 'financiamentos': " + e.getMessage(), e);
         }
     }
 
@@ -75,6 +64,7 @@ public class FinanciamentoDAO {
 
     // Método para adicionar um financiamento
     public void adicionarFinanciamento(Financiamento financiamento) {
+        // Verifica se o financiamento já existe no banco de dados
         if (financiamentoExiste(financiamento.getId())) {
             System.out.println("Financiamento com ID " + financiamento.getId() + " já existe no banco de dados.");
             return;
@@ -124,33 +114,6 @@ public class FinanciamentoDAO {
             throw new RuntimeException("Erro ao listar financiamentos: " + e.getMessage(), e);
         }
         return financiamentos;
-    }
-
-    // Método para buscar um financiamento por ID
-    public Financiamento buscarFinanciamentoPorId(int id) {
-        String sql = "SELECT * FROM financiamentos WHERE id = ?";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Financiamento(
-                            rs.getInt("id"),
-                            rs.getInt("cliente_id"),
-                            rs.getInt("imovel_id"),
-                            rs.getDouble("valor_financiado"),
-                            rs.getDouble("taxa_juros"),
-                            rs.getDouble("valor_entrada"),
-                            rs.getInt("prazo"),
-                            TipoAmortizacao.valueOf(rs.getString("tipo_amortizacao")),
-                            rs.getDouble("total_pagar"),
-                            rs.getDate("data_simulacao").toLocalDate()
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar financiamento por ID: " + e.getMessage(), e);
-        }
-        return null; // Retorna null se o financiamento não for encontrado
     }
 
     // Método para fechar a conexão

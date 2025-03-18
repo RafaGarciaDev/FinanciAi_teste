@@ -34,7 +34,7 @@ public class ParcelasDAO {
                 System.out.println("Tabela 'parcelas' já existe.");
             } else {
                 stmt.executeUpdate(criaTabela);
-                // System.out.println("Criando tabela 'parcelas'...");
+               // System.out.println("Criando tabela 'parcelas'...");
                 System.out.println("Tabela 'parcelas' criada com sucesso!");
             }
         } catch (SQLException e) {

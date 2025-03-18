@@ -14,37 +14,26 @@ public class ClienteDAO {
         criarTabelaClientes(); // Verifica e cria a tabela se não existir
     }
 
-    // Método para verificar se a tabela clientes já existe
-    private boolean tabelaExiste() {
-        String sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'clientes'";
-        try (Statement stmt = conexao.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao verificar se a tabela 'clientes' existe: " + e.getMessage(), e);
-        }
-        return false;
-    }
-
     // Método para criar a tabela clientes se não existir
     private void criarTabelaClientes() {
-        if (tabelaExiste()) {
-            System.out.println("Tabela 'clientes' já existe.");
-            return;
-        }
-
-        String criaTabela = "CREATE TABLE clientes (" +
-                "id INT PRIMARY KEY AUTO_INCREMENT, " +
+        String verificaTabela = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'clientes'";
+        String criaTabela = "CREATE TABLE IF NOT EXISTS clientes (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT, " + // Adicionado AUTO_INCREMENT para o ID
                 "nome VARCHAR(100) NOT NULL, " +
                 "renda_mensal DOUBLE NOT NULL)";
 
-        try (Statement stmt = conexao.createStatement()) {
-            stmt.executeUpdate(criaTabela);
-            System.out.println("Tabela 'clientes' criada com sucesso!");
+        try (Statement stmt = conexao.createStatement();
+             ResultSet rs = stmt.executeQuery(verificaTabela)) {
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Tabela 'clientes' já existe.");
+            } else {
+                stmt.executeUpdate(criaTabela);
+               // System.out.println("Criando tabela 'clientes'...");
+                System.out.println("Tabela 'clientes' criada com sucesso!");
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao criar tabela 'clientes': " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao verificar/criar tabela 'clientes': " + e.getMessage(), e);
         }
     }
 
@@ -128,6 +117,7 @@ public class ClienteDAO {
         try {
             if (conexao != null) {
                 conexao.close();
+               // System.out.println("Conexão com o banco de dados encerrada.");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao fechar a conexão: " + e.getMessage(), e);

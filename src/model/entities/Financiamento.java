@@ -115,9 +115,17 @@ public class Financiamento {
 
     @Override
     public String toString() {
-        return String.format(
-                "Financiamento [ID: %d | Cliente ID: %d | Imóvel ID: %d | Valor Financiado: R$ %.2f | Taxa de Juros: %.2f%% | Valor Entrada: R$ %.2f | Prazo: %d meses | Tipo Amortização: %s | Total a Pagar: R$ %.2f | Data Simulação: %s]",
-                id, clienteId, imovelId, valorFinanciado, taxaJuros, valorEntrada, prazo, tipoAmortizacao, totalPagar, dataSimulacao
-        );
+        return "Financiamento{" +
+                "id=" + id +
+                ", clienteId=" + clienteId +
+                ", imovelId=" + imovelId +
+                ", valorFinanciado=" + valorFinanciado +
+                ", taxaJuros=" + taxaJuros +
+                ", valorEntrada=" + valorEntrada +
+                ", prazo=" + prazo +
+                ", tipoAmortizacao=" + tipoAmortizacao +
+                ", totalPagar=" + totalPagar +
+                ", dataSimulacao=" + dataSimulacao +
+                '}';
     }
 }
