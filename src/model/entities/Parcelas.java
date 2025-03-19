@@ -1,5 +1,9 @@
 package model.entities;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
+
 public class Parcelas {
     private int id;
     private int financiamentoId;
@@ -59,14 +63,24 @@ public class Parcelas {
         this.valorAmortizacao = valorAmortizacao;
     }
 
+    // Método para calcular os juros
+    public double getValorJuros() {
+        return valorParcela - valorAmortizacao;
+    }
+
+    // Método para formatar valores com vírgula como separador decimal
+    private String formatarValor(double valor) {
+        DecimalFormat df = new DecimalFormat("#,##0.00", new DecimalFormatSymbols(new Locale("pt", "BR")));
+        return df.format(valor);
+    }
+
     @Override
     public String toString() {
-        return "Parcelas{" +
-                "id=" + id +
-                ", financiamentoId=" + financiamentoId +
-                ", numeroParcela=" + numeroParcela +
-                ", valorParcela=" + valorParcela +
-                ", valorAmortizacao=" + valorAmortizacao +
-                '}';
+        return String.format(
+                "| %-11d | %-12s | %-17s | %-12s |",
+                numeroParcela, formatarValor(valorParcela), formatarValor(valorAmortizacao), formatarValor(getValorJuros())
+        );
     }
+
+
 }

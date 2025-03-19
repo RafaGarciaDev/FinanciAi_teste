@@ -19,17 +19,26 @@ public class ParcelasDAO {
 
     // Método para criar a tabela parcelas se não existir
     private void criarTabelaParcelas() {
-        String sql = "CREATE TABLE IF NOT EXISTS parcelas (" +
-                "id INT PRIMARY KEY, " +
+        String verificaTabela = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'parcelas'";
+        String criaTabela = "CREATE TABLE IF NOT EXISTS parcelas (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT, " +
                 "financiamento_id INT NOT NULL, " +
                 "numero_parcela INT NOT NULL, " +
                 "valor_parcela DOUBLE NOT NULL, " +
                 "valor_amortizacao DOUBLE NOT NULL)";
-        try (Statement stmt = conexao.createStatement()) {
-            stmt.executeUpdate(sql);
-            System.out.println("Tabela 'parcelas' verificada/criada com sucesso!");
+
+        try (Statement stmt = conexao.createStatement();
+             ResultSet rs = stmt.executeQuery(verificaTabela)) {
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Tabela 'parcelas' já existe.");
+            } else {
+                stmt.executeUpdate(criaTabela);
+                // System.out.println("Criando tabela 'parcelas'...");
+                System.out.println("Tabela 'parcelas' criada com sucesso!");
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao criar tabela 'parcelas': " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao verificar/criar tabela 'parcelas': " + e.getMessage(), e);
         }
     }
 
@@ -75,17 +84,20 @@ public class ParcelasDAO {
         double valorParcelaFormatado = formatarValor(parcela.getValorParcela());
         double valorAmortizacaoFormatado = formatarValor(parcela.getValorAmortizacao());
 
-        // Gera um ID único para a parcela
-        int idParcela = gerarIdUnicoParcela(parcela.getFinanciamentoId(), parcela.getNumeroParcela());
-
-        String sql = "INSERT INTO parcelas (id, financiamento_id, numero_parcela, valor_parcela, valor_amortizacao) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, idParcela);
-            stmt.setInt(2, parcela.getFinanciamentoId());
-            stmt.setInt(3, parcela.getNumeroParcela());
-            stmt.setDouble(4, valorParcelaFormatado); // Valor formatado
-            stmt.setDouble(5, valorAmortizacaoFormatado); // Valor formatado
+        String sql = "INSERT INTO parcelas (financiamento_id, numero_parcela, valor_parcela, valor_amortizacao) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, parcela.getFinanciamentoId());
+            stmt.setInt(2, parcela.getNumeroParcela());
+            stmt.setDouble(3, valorParcelaFormatado); // Valor formatado
+            stmt.setDouble(4, valorAmortizacaoFormatado); // Valor formatado
             stmt.executeUpdate();
+
+            // Recupera o ID gerado automaticamente
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    parcela.setId(generatedKeys.getInt(1)); // Atualiza o objeto com o ID gerado
+                }
+            }
 
             // Exibe a tartaruga e o progresso
             exibirTartaruga(parcela.getNumeroParcela(), parcela.getNumeroParcela());
@@ -162,7 +174,7 @@ public class ParcelasDAO {
     // Método para fechar a conexão
     public void fecharConexao() {
         try {
-            if (conexao != null) {
+            if (conexao != null && !conexao.isClosed()) {
                 conexao.close();
                 System.out.println("Conexão com o banco de dados encerrada.");
             }

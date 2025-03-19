@@ -14,15 +14,35 @@ public class ClienteDAO {
         criarTabelaClientes(); // Verifica e cria a tabela se não existir
     }
 
+    // Método para verificar se a tabela clientes já existe
+    private boolean tabelaExiste() {
+        String sql = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'clientes'";
+        try (Statement stmt = conexao.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao verificar se a tabela 'clientes' existe: " + e.getMessage(), e);
+        }
+        return false;
+    }
+
     // Método para criar a tabela clientes se não existir
     private void criarTabelaClientes() {
-        String sql = "CREATE TABLE IF NOT EXISTS clientes (" +
-                "id INT PRIMARY KEY, " +
+        if (tabelaExiste()) {
+            System.out.println("Tabela 'clientes' já existe.");
+            return;
+        }
+
+        String criaTabela = "CREATE TABLE clientes (" +
+                "id INT PRIMARY KEY AUTO_INCREMENT, " +
                 "nome VARCHAR(100) NOT NULL, " +
                 "renda_mensal DOUBLE NOT NULL)";
+
         try (Statement stmt = conexao.createStatement()) {
-            stmt.executeUpdate(sql);
-            System.out.println("Tabela 'clientes' verificada/criada com sucesso!");
+            stmt.executeUpdate(criaTabela);
+            System.out.println("Tabela 'clientes' criada com sucesso!");
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao criar tabela 'clientes': " + e.getMessage(), e);
         }
@@ -83,6 +103,7 @@ public class ClienteDAO {
         return clientes;
     }
 
+    // Método para buscar um cliente por ID
     public Cliente buscarClientePorId(int id) {
         String sql = "SELECT * FROM clientes WHERE id = ?";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
@@ -107,7 +128,6 @@ public class ClienteDAO {
         try {
             if (conexao != null) {
                 conexao.close();
-                //System.out.println("Conexão com o banco de dados encerrada.");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao fechar a conexão: " + e.getMessage(), e);

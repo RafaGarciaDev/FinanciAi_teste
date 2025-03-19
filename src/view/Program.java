@@ -80,13 +80,8 @@ public class Program {
 
     // Método para adicionar 5 imóveis ao banco de dados
     private static void adicionarImoveis(ImovelDAO imovelDAO) throws SQLException {
-<<<<<<< Updated upstream
         Imovel imovel1 = new Imovel(1, 200000.00, TipoImovel.CASA);
         Imovel imovel2 = new Imovel(2, 300000.00, TipoImovel.APARTAMENTO);
-=======
-        Imovel imovel1 = new Imovel(1, 300000.00, TipoImovel.CASA);
-        Imovel imovel2 = new Imovel(2, 200000.00, TipoImovel.APARTAMENTO);
->>>>>>> Stashed changes
         Imovel imovel3 = new Imovel(3, 500000.00, TipoImovel.CASA);
         Imovel imovel4 = new Imovel(4, 400000.00, TipoImovel.APARTAMENTO);
         Imovel imovel5 = new Imovel(5, 600000.00, TipoImovel.CASA);
@@ -100,39 +95,42 @@ public class Program {
         System.out.println("5 imóveis adicionados ao banco de dados.");
     }
 
-    // Método para listar clientes e imóveis disponíveis
-    private static void listarClientesEImoveis(ClienteDAO clienteDAO, ImovelDAO imovelDAO) throws SQLException {
-        System.out.println("\nClientes cadastrados:");
-        List<Cliente> clientes = clienteDAO.listarClientes();
-        for (Cliente cliente : clientes) {
-            System.out.println(cliente);
-        }
-
-        System.out.println("\nImóveis disponíveis:");
-        List<Imovel> imoveis = imovelDAO.listarImoveis();
-        for (Imovel imovel : imoveis) {
-            System.out.println(imovel);
-        }
-    }
-
     // Método para nova simulação do zero
     private static void novaSimulacao(Scanner scanner, ClienteDAO clienteDAO, ImovelDAO imovelDAO, FinanciamentoController financiamentoController) throws SQLException {
+        // Listar clientes e imóveis disponíveis
+        listarClientesEImoveis(clienteDAO, imovelDAO);
+
+        // Solicitar dados do financiamento
         System.out.print("Digite o ID do cliente: ");
         int clienteId = scanner.nextInt();
+
+        // Verificar se o cliente existe
+        Cliente cliente = clienteDAO.buscarClientePorId(clienteId);
+        if (cliente == null) {
+            System.out.println("Cliente não encontrado. Verifique o ID e tente novamente.");
+            return;
+        }
 
         System.out.print("Digite o ID do imóvel que deseja financiar: ");
         int imovelId = scanner.nextInt();
 
-        System.out.print("Digite o valor financiado: ");
-        double valorFinanciado = scanner.nextDouble();
+        // Buscar o imóvel pelo ID
+        Imovel imovel = imovelDAO.buscarImovelPorId(imovelId);
+        if (imovel == null) {
+            System.out.println("Imóvel não encontrado. Verifique o ID e tente novamente.");
+            return;
+        }
+
+        // Preencher o valor financiado automaticamente
+        double valorFinanciado = imovel.getvalor();
+        System.out.println("Valor financiado (automático): " + valorFinanciado);
+
         System.out.print("Digite a taxa de juros (%): ");
         double taxaJuros = scanner.nextDouble();
         System.out.print("Digite o valor de entrada: ");
         double valorEntrada = scanner.nextDouble();
         System.out.print("Digite o prazo (em meses): ");
-
         int prazo = scanner.nextInt();
-<<<<<<< Updated upstream
 
         // Escolha do tipo de amortização usando números
         System.out.print("Digite o tipo de amortização (1 para PRICE, 2 para SAC): ");
@@ -150,13 +148,6 @@ public class Program {
 
         // Gerar um ID único para o financiamento
         int financiamentoId = financiamentoController.gerarNovoIdFinanciamento();
-=======
-        System.out.print("Digite o tipo de amortização (1 PRICE ou 2 SAC): ");
-
-
-        String tipoAmortizacaoStr = scanner.next();
-        TipoAmortizacao tipoAmortizacao = TipoAmortizacao.valueOf(tipoAmortizacaoStr.toUpperCase());
->>>>>>> Stashed changes
 
         // Simulando o financiamento
         financiamentoController.simularFinanciamento(financiamentoId, clienteId, imovelId, valorFinanciado, taxaJuros, valorEntrada, prazo, tipoAmortizacao);
@@ -164,6 +155,21 @@ public class Program {
         // Listando financiamentos e parcelas
         financiamentoController.listarFinanciamentos();
         financiamentoController.listarParcelas(financiamentoId);
+    }
+
+    // Método para listar clientes e imóveis disponíveis
+    private static void listarClientesEImoveis(ClienteDAO clienteDAO, ImovelDAO imovelDAO) throws SQLException {
+        System.out.println("\nClientes cadastrados:");
+        List<Cliente> clientes = clienteDAO.listarClientes();
+        for (Cliente cliente : clientes) {
+            System.out.println(cliente);
+        }
+
+        System.out.println("\nImóveis disponíveis:");
+        List<Imovel> imoveis = imovelDAO.listarImoveis();
+        for (Imovel imovel : imoveis) {
+            System.out.println(imovel);
+        }
     }
 
     // Método para consultar simulação existente

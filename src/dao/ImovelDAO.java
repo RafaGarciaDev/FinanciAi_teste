@@ -17,15 +17,23 @@ public class ImovelDAO {
 
     // Método para criar a tabela imoveis se não existir
     private void criarTabelaImoveis() {
-        String sql = "CREATE TABLE IF NOT EXISTS imoveis (" +
-                "id INT PRIMARY KEY, " +
+        String verificaTabela = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'imoveis'";
+        String criaTabela = "CREATE TABLE IF NOT EXISTS imoveis (" +
+                "id INT PRIMARY KEY, " + // Removido AUTO_INCREMENT
                 "valor DOUBLE NOT NULL, " +
                 "tipo_imovel VARCHAR(50) NOT NULL)";
-        try (Statement stmt = conexao.createStatement()) {
-            stmt.executeUpdate(sql);
-            System.out.println("Tabela 'imoveis' verificada/criada com sucesso!");
+
+        try (Statement stmt = conexao.createStatement();
+             ResultSet rs = stmt.executeQuery(verificaTabela)) {
+
+            if (rs.next() && rs.getInt(1) > 0) {
+                System.out.println("Tabela 'imoveis' já existe.");
+            } else {
+                stmt.executeUpdate(criaTabela);
+                System.out.println("Tabela 'imoveis' criada com sucesso!");
+            }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao criar tabela 'imoveis': " + e.getMessage(), e);
+            throw new RuntimeException("Erro ao verificar/criar tabela 'imoveis': " + e.getMessage(), e);
         }
     }
 
@@ -55,7 +63,7 @@ public class ImovelDAO {
         String sql = "INSERT INTO imoveis (id, valor, tipo_imovel) VALUES (?, ?, ?)";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
             stmt.setInt(1, imovel.getId());
-            stmt.setDouble(2, imovel.getvalor()); // Usando getValor() corrigido
+            stmt.setDouble(2, imovel.getvalor());
             stmt.setString(3, imovel.getTipoImovel().toString());
             stmt.executeUpdate();
             System.out.println("Imóvel adicionado com sucesso!");
@@ -74,7 +82,7 @@ public class ImovelDAO {
                 Imovel imovel = new Imovel(
                         rs.getInt("id"),
                         rs.getDouble("valor"),
-                        TipoImovel.valueOf(rs.getString("tipo_imovel")) // Corrigido para "tipo_imovel"
+                        TipoImovel.valueOf(rs.getString("tipo_imovel"))
                 );
                 imoveis.add(imovel);
             }
@@ -84,6 +92,7 @@ public class ImovelDAO {
         return imoveis;
     }
 
+    // Método para buscar um imóvel por ID
     public Imovel buscarImovelPorId(int id) {
         String sql = "SELECT * FROM imoveis WHERE id = ?";
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
@@ -106,9 +115,9 @@ public class ImovelDAO {
     // Método para fechar a conexão
     public void fecharConexao() {
         try {
-            if (conexao != null) {
+            if (conexao != null && !conexao.isClosed()) {
                 conexao.close();
-                //System.out.println("Conexão com o banco de dados encerrada.");
+                System.out.println("Conexão com o banco de dados encerrada.");
             }
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao fechar a conexão: " + e.getMessage(), e);
